@@ -40,21 +40,21 @@ do
       fi
     fi
   fi
+  #insert gama data
+  if [[ $YEAR != "year" && $ROUND != "round" && $WINNER != "winner" && $OPPONENT != "opponent" && $WINNER_GOALS != "winner_goals" && $OPPONENT_GOALS != "opponent_goals" ]]; then
+    WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$WINNER';")
+    OPPONENT_ID=$($PSQL "SELECT team_id FROM teams WHERE name='$OPPONENT';")
+    
+    # Check if the game already exists
+    GAME_EXISTS=$($PSQL "SELECT game_id FROM games WHERE year=$YEAR AND round='$ROUND' AND winner_id=$WINNER_ID AND opponent_id=$OPPONENT_ID;")
 
-  if [[ $YEAR != "year" || $ROUND != "round" ]]; then
-    YEAR_DB=$($PSQL "SELECT year FROM games WHERE year='$YEAR';")
-    ROUND_DB=$($PSQL "SELECT round FROM games WHERE round='$ROUND';")
-    
-    
-    if [[ -z $YEAR_DB && -z $ROUND_DB]]; then
-      INSERT_YEAR_RESULT=$($PSQL "INSERT INTO games(year) VALUES('$YEAR')")
-      INSERT_ROUND_RESULT=$($PSQL "INSERT INTO games(round) VALUES('$ROUND')")
-      if [[ $INSERT_YEAR_RESULT == "INSERT 0 1" ]]; then
-        echo "Inserted into games: $YEAR , $ROUND"
+    if [[ -z $GAME_EXISTS ]]; then
+      INSERT_GAME_RESULT=$($PSQL "INSERT INTO games(year, round, winner_id, opponent_id, winner_goals, opponent_goals) VALUES($YEAR, '$ROUND', $WINNER_ID, $OPPONENT_ID, $WINNER_GOALS, $OPPONENT_GOALS);")
+      
+      if [[ $INSERT_GAME_RESULT == "INSERT 0 1" ]]; then
+        echo "Inserted into games: $YEAR $ROUND - $WINNER vs $OPPONENT"
       fi
     fi
-
-    
   fi
 done
 
